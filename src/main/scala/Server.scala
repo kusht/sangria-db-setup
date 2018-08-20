@@ -20,7 +20,6 @@ import akka.http.scaladsl.marshalling.ToResponseMarshallable
 import de.heikoseeberger.akkasse._
 import de.heikoseeberger.akkasse.EventStreamMarshalling._
 import sangria.execution.deferred.DeferredResolver
-
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
@@ -40,6 +39,9 @@ object Server extends App {
   val authorsView = system.actorOf(Props[AuthorView])
   val authorsSink = Sink.fromSubscriber(ActorSubscriber[AuthorEvent](authorsView))
 
+  val countView =system.actorOf(Props[CountView])
+  val countSink = Sink.fromSubscriber(ActorSubscriber[DatabaseChangeEvent](countView))
+
   val eventStore = system.actorOf(Props[MemoryEventStore])
   val eventStorePublisher =
     Source.fromPublisher(ActorPublisher[Event](eventStore))
@@ -52,7 +54,7 @@ object Server extends App {
   val executor = Executor(schema.createSchema, deferredResolver = DeferredResolver.fetchers(schema.authors))
 
   def executeQuery(query: String, operation: Option[String], variables: JsObject = JsObject.empty) = {
-    val ctx = Ctx(authorsView, articlesView, eventStore, eventStorePublisher, system.dispatcher, timeout)
+    val ctx = Ctx(authorsView, articlesView, countView, eventStore, eventStorePublisher, system.dispatcher, timeout)
 
     QueryParser.parse(query) match {
       // Query is parsed successfully, let's execute it
@@ -129,6 +131,9 @@ object Server extends App {
     (get & path("client")) {
       getFromResource("web/client.html")
     } ~
+      (get & path("test")) {
+        getFromResource("web/test.html")
+      }~
     get {
       getFromResource("web/graphiql.html")
     }

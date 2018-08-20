@@ -11,10 +11,12 @@ import akka.stream.scaladsl.Source
 import org.reactivestreams.Publisher
 
 import scala.concurrent.{ExecutionContext, Future}
+import count.Count
 
 case class Ctx(
   authors: ActorRef,
   articles: ActorRef,
+  cluster_count: ActorRef,
   eventStore: ActorRef,
   eventStorePublisher: Publisher[Event],
   ec: ExecutionContext,
@@ -35,6 +37,7 @@ case class Ctx(
       case ConcurrentModification(_, latestVersion) ⇒
         throw MutationError(s"Concurrent Modification error for entity '${event.id}'. Latest entity version is '$latestVersion'.")
     }
+
 
   def addDeleteEvent(event: Event) =
     (eventStore ? AddEvent(event)).map {
@@ -57,4 +60,6 @@ case class Ctx(
 
   def loadAuthors(ids: Seq[String]) =
     (authors ? GetMany(ids)).mapTo[Seq[Author]]
+
+
 }

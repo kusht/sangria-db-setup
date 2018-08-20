@@ -1,4 +1,6 @@
 import generic.View
+import count.Count
+import count.CountViewObj
 
 class ArticleView extends View[Article, ArticleEvent] {
   val handleEvent: Handler = {
@@ -22,5 +24,12 @@ class AuthorView extends View[Author, AuthorEvent] {
         lastName = event.lastName))
     case event: AuthorDeleted ⇒
       delete(event)
+  }
+}
+
+class CountView extends View[CountViewObj, DatabaseChangeEvent] {
+  val handleEvent: Handler = {
+    case event: CountChanged =>
+      update(event)(_.copy())
   }
 }

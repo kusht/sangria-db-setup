@@ -20,7 +20,10 @@ libraryDependencies ++= Seq(
   // akka-http still depends on 2.4 but should work with 2.5 without problems
   // see https://github.com/akka/akka-http/issues/821
   "com.typesafe.akka" %% "akka-stream" % "2.5.1",
-  "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.1" % "test"
+  "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.1" % "test",
+
+  "com.typesafe.play" %% "play-slick" % "3.0.0",
+  "mysql" % "mysql-connector-java" % "6.0.6"
 )
 
 resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"

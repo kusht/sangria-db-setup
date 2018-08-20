@@ -15,8 +15,9 @@ trait Mutation {
 
   @GraphQLField
   def changeAuthorName(id: String, version: Long, firstName: String, lastName: String) =
-    loadLatestVersion(id, version) flatMap (version ⇒
-      addEvent[Author](authors, AuthorNameChanged(id, version, firstName, lastName)))
+    loadLatestVersion(id, version) flatMap (
+      version ⇒
+        addEvent[Author](authors, AuthorNameChanged(id, version, firstName, lastName)))
 
   @GraphQLField
   def deleteAuthor(id: String, version: Long) =
@@ -37,8 +38,9 @@ trait Mutation {
 
   @GraphQLField
   def changeArticleText(id: String, version: Long, text: Option[String]) =
-    loadLatestVersion(id, version) flatMap (version ⇒
-      addEvent[Article](articles, ArticleTextChanged(id, version, text)))
+    loadLatestVersion(id, version) flatMap (
+      version ⇒
+        addEvent[Article](articles, ArticleTextChanged(id, version, text)))
 
   @GraphQLField
   def deleteArticle(id: String, version: Long) =
@@ -47,4 +49,12 @@ trait Mutation {
       author ← (articles ? Get(id)).mapTo[Option[Article]]
       _ ← addDeleteEvent(ArticleDeleted(id, version))
     } yield author
+
+  @GraphQLField
+  def database_changed(id: String, version: Long, n: Int) = {
+    //    addEvent[Count](cluster_count, CountChanged(id, version, n))
+    var new_count = CountController.get(n)
+    addDeleteEvent(CountChanged(id, version, new_count))
+    new_count
+  }
 }

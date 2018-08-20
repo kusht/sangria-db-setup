@@ -8,6 +8,8 @@ import sangria.macros.derive._
 import akka.pattern.ask
 import akka.stream.Materializer
 import sangria.execution.deferred.{Fetcher, HasId}
+import count.Count
+
 
 import scala.concurrent.ExecutionContext
 import sangria.streaming.akkaStreams._
@@ -26,11 +28,14 @@ object schema {
 
     val EventType = InterfaceType("Event", fields[Ctx, Event](
       Field("id", StringType, resolve = _.value.id),
-      Field("version", LongType, resolve = _.value.version)))
+      Field("count", LongType, resolve = _.value.version)))
 
     val AuthorCreatedType = deriveObjectType[Unit, AuthorCreated](Interfaces(EventType))
     val AuthorNameChangedType = deriveObjectType[Unit, AuthorNameChanged](Interfaces(EventType))
     val AuthorDeletedType = deriveObjectType[Unit, AuthorDeleted](Interfaces(EventType))
+
+    implicit val CountType = deriveObjectType[Unit, Count]()
+    val CountChangedType = deriveObjectType[Unit, CountChanged](Interfaces(EventType))
 
     val ArticleCreatedType = deriveObjectType[Unit, ArticleCreated](
       Interfaces(EventType),
@@ -81,6 +86,7 @@ object schema {
       subscriptionField(ArticleCreatedType),
       subscriptionField(ArticleTextChangedType),
       subscriptionField(ArticleDeletedType),
+      subscriptionField(CountChangedType),
       Field.subs("allEvents", EventType, resolve = _.ctx.eventStream.map(Action(_)))
     ))
 

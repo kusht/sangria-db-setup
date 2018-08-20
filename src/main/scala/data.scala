@@ -1,10 +1,14 @@
+
+
 import generic.{Event, Versioned}
+import count.Count
 
 // Model
 
 case class Article(id: String, version: Long, title: String, authorId: String, text: Option[String]) extends Versioned
 
 case class Author(id: String, version: Long, firstName: String, lastName: String) extends Versioned
+
 
 // events
 
@@ -19,3 +23,9 @@ sealed trait AuthorEvent extends Event
 case class AuthorCreated(id: String, version: Long, firstName: String, lastName: String) extends AuthorEvent
 case class AuthorNameChanged(id: String, version: Long, firstName: String, lastName: String) extends AuthorEvent
 case class AuthorDeleted(id: String, version: Long) extends AuthorEvent
+
+sealed trait DatabaseChangeEvent extends Event
+
+case class CountChanged(id: String, version: Long, newcount: Count)
+  extends
+  DatabaseChangeEvent
