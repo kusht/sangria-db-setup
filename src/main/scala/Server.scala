@@ -23,10 +23,18 @@ import sangria.execution.deferred.DeferredResolver
 import scala.concurrent.duration._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
+//import com.spingo.op_rabbit.RabbitControl
+import com.spingo.op_rabbit._
+import count.Count
+
+
 
 object Server extends App {
   implicit val system = ActorSystem("server")
   implicit val materializer = ActorMaterializer()
+
+
+
   val logger = Logging(system, getClass)
 
   import system.dispatcher
@@ -52,6 +60,21 @@ object Server extends App {
   Source.fromPublisher(eventStorePublisher).collect{case event: AuthorEvent ⇒ event}.to(authorsSink).run()
 
   val executor = Executor(schema.createSchema, deferredResolver = DeferredResolver.fetchers(schema.authors))
+
+  val rabbitControl = system.actorOf(Props[RabbitControl])
+  implicit val recoveryStrategy = RecoveryStrategy.none
+  val subscriptionRef = Subscription.run(rabbitControl) {
+    import com.spingo.op_rabbit.Directives._
+    channel() {
+      consume(Queue.passive("hello")) {
+        (body(as[String]) & routingKey) { (count, key) =>
+          println("recieved new message")
+          println(count)
+          ack
+        }
+      }
+    }
+  }
 
   def executeQuery(query: String, operation: Option[String], variables: JsObject = JsObject.empty) = {
     val ctx = Ctx(authorsView, articlesView, countView, eventStore, eventStorePublisher, system.dispatcher, timeout)

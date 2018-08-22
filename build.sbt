@@ -5,6 +5,7 @@ description := "Sangria Subscriptions Example"
 
 scalaVersion := "2.12.2"
 scalacOptions ++= Seq("-deprecation", "-feature")
+val opRabbitVersion = "2.1.0"
 
 libraryDependencies ++= Seq(
   "org.sangria-graphql" %% "sangria" % "1.2.0",
@@ -23,7 +24,13 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream-testkit" % "2.5.1" % "test",
 
   "com.typesafe.play" %% "play-slick" % "3.0.0",
-  "mysql" % "mysql-connector-java" % "6.0.6"
+  "mysql" % "mysql-connector-java" % "6.0.6",
+
+  "com.spingo" %% "op-rabbit-core"        % opRabbitVersion,
+  "com.spingo" %% "op-rabbit-play-json"   % opRabbitVersion,
+  "com.spingo" %% "op-rabbit-json4s"      % opRabbitVersion,
+  "com.spingo" %% "op-rabbit-airbrake"    % opRabbitVersion,
+  "com.spingo" %% "op-rabbit-akka-stream" % opRabbitVersion
 )
 
 resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
