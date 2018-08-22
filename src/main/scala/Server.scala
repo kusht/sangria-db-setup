@@ -61,23 +61,16 @@ object Server extends App {
 
   val executor = Executor(schema.createSchema, deferredResolver = DeferredResolver.fetchers(schema.authors))
 
-  val rabbitControl = system.actorOf(Props[RabbitControl])
-  implicit val recoveryStrategy = RecoveryStrategy.none
-  val subscriptionRef = Subscription.run(rabbitControl) {
-    import com.spingo.op_rabbit.Directives._
-    channel() {
-      consume(Queue.passive("hello")) {
-        (body(as[String]) & routingKey) { (count, key) =>
-          println("recieved new message")
-          println(count)
-          ack
-        }
-      }
-    }
-  }
 
-  def executeQuery(query: String, operation: Option[String], variables: JsObject = JsObject.empty) = {
+
+  def executeQuery(query: String, operation: Option[String], variables: JsObject = JsObject.empty, addevent: Boolean = false) = {
     val ctx = Ctx(authorsView, articlesView, countView, eventStore, eventStorePublisher, system.dispatcher, timeout)
+
+    // can add the id logic here instead
+    if (addevent) {
+      println("notifying database changes")
+      ctx.notify_db_change(1)
+    }
 
     QueryParser.parse(query) match {
       // Query is parsed successfully, let's execute it
@@ -105,13 +98,15 @@ object Server extends App {
                 })
 
           // all other queries will just return normal JSON response
-          case _ ⇒
+          case _ ⇒{
+            println("inside not subsscription")
             complete(executor.execute(queryAst, ctx, (), operation, variables)
               .map(OK → _)
               .recover {
                 case error: QueryAnalysisError ⇒ BadRequest → error.resolveError
                 case error: ErrorWithResolver ⇒ InternalServerError → error.resolveError
               })
+        }
         }
 
       // Query contains syntax errors
@@ -142,7 +137,6 @@ object Server extends App {
           case Some(obj: JsObject) ⇒ obj
           case _ ⇒ JsObject.empty
         }
-
         executeQuery(query, operation, vars)
       }
     } ~
@@ -160,6 +154,23 @@ object Server extends App {
     get {
       getFromResource("web/graphiql.html")
     }
+
+  val rabbitControl = system.actorOf(Props[RabbitControl])
+  implicit val recoveryStrategy = RecoveryStrategy.none
+  val subscriptionRef = Subscription.run(rabbitControl) {
+    import com.spingo.op_rabbit.Directives._
+    channel() {
+      consume(Queue.passive("hello")) {
+        (body(as[String]) & routingKey) { (count, key) =>
+          println("recieved new message")
+          println(count)
+          val temp = ""
+          executeQuery(temp, None, addevent = true)
+          ack
+        }
+      }
+    }
+  }
 
   Http().bindAndHandle(route, "0.0.0.0", 8080)
 }

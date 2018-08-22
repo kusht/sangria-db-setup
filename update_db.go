@@ -8,7 +8,6 @@ import (
 	"context"
 	//"reflect"
 	"github.com/streadway/amqp"
-	"reflect"
 )
 
 func main() {
@@ -20,7 +19,7 @@ func main() {
 		return
 	}
 
-	stmt, err := db.Prepare("UPDATE CountTable SET count=9 WHERE id=1")
+	stmt, err := db.Prepare("UPDATE CountTable SET count=8 WHERE id=1")
 
 	failOnError(err, "could not update db")
 
@@ -60,7 +59,7 @@ func connect_to_queue(ctx context.Context) {
 		false,   // no-wait
 		nil,     // arguments
 	)
-
+	fmt.Println(q)
 	failOnError(err, "Failed to declare a queue")
 
 	//body := "database changed"

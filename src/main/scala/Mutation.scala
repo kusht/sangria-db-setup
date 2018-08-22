@@ -53,6 +53,7 @@ trait Mutation {
   @GraphQLField
   def database_changed(id: String, version: Long, n: Int) = {
     //    addEvent[Count](cluster_count, CountChanged(id, version, n))
+    println("here now")
     var new_count = CountController.get(n)
     addDeleteEvent(CountChanged(id, version, new_count))
     new_count

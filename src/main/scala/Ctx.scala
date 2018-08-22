@@ -61,5 +61,12 @@ case class Ctx(
   def loadAuthors(ids: Seq[String]) =
     (authors ? GetMany(ids)).mapTo[Seq[Author]]
 
+  def notify_db_change(id: Int) = {
+    println("HERE NOW")
+    var new_count = CountController.get(id)
+    println("NEW CONUT IS " + new_count)
+    addDeleteEvent(CountChanged("version_1", 4, new_count))
+    new_count
+  }
 
 }

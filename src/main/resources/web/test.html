@@ -141,6 +141,9 @@
             countChanged {
                 id
                 version
+                newcount {
+                    n
+                }
             }
         }
         `
@@ -155,8 +158,8 @@
           console.log(data)
           console.log(typeof data)
           var propname;
-
-          var new_count = data.data.countChanged.version;
+          
+          var new_count = data.data.countChanged.newcount.n;
           $("#update_here").text(new_count)
         })
 
